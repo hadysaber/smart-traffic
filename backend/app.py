@@ -3,7 +3,7 @@ import logging
 import os
 from typing import List
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
@@ -19,7 +19,7 @@ from config import (
 from cv_hook import count_cars
 from ml_model import TrafficMLModel
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app)
 
 logging.basicConfig(
@@ -35,6 +35,8 @@ system_state = {
     "last_timings": None,
     "last_image_path": None,
     "last_update_timestamp": None,
+    "last_camera_heartbeat": None,
+    "last_lights_heartbeat": None,
 }
 
 
@@ -50,6 +52,12 @@ def timestamp() -> str:
     return datetime.datetime.utcnow().isoformat() + "Z"
 
 
+def _is_recent(heartbeat: datetime.datetime, window_seconds: int = 15) -> bool:
+    if not heartbeat:
+        return False
+    return (datetime.datetime.utcnow() - heartbeat).total_seconds() <= window_seconds
+
+
 def update_state(counts: List[int], timings: dict, image_path: str = None) -> None:
     system_state["last_counts"] = counts
     system_state["last_timings"] = timings
@@ -57,14 +65,54 @@ def update_state(counts: List[int], timings: dict, image_path: str = None) -> No
     system_state["last_update_timestamp"] = timestamp()
 
 
+def status_payload() -> dict:
+    counts = system_state["last_counts"] or DEFAULT_COUNTS
+    last_timings = system_state["last_timings"]
+    last_update = system_state["last_update_timestamp"] or timestamp()
+    camera_connected = _is_recent(system_state.get("last_camera_heartbeat"))
+    lights_connected = _is_recent(system_state.get("last_lights_heartbeat"))
+
+    return {
+        "last_counts": counts,
+        "last_timings": last_timings,
+        "last_image_path": system_state["last_image_path"],
+        "last_update_timestamp": last_update,
+        "last_camera_heartbeat": system_state.get("last_camera_heartbeat").isoformat() + "Z"
+        if system_state.get("last_camera_heartbeat")
+        else None,
+        "last_lights_heartbeat": system_state.get("last_lights_heartbeat").isoformat() + "Z"
+        if system_state.get("last_lights_heartbeat")
+        else None,
+        "esp32_camera_connected": camera_connected,
+        "esp32_lights_connected": lights_connected,
+    }
+
+
 @app.route("/api/health", methods=["GET"])
 def health() -> tuple:
     return jsonify({"status": "ok", "time": timestamp()})
 
 
+@app.route("/", methods=["GET"])
+def dashboard() -> tuple:
+    return render_template("dashboard.html")
+
+
 @app.route("/api/status", methods=["GET"])
 def status() -> tuple:
-    return jsonify(system_state)
+    return jsonify(status_payload())
+
+
+@app.route("/api/heartbeat/camera", methods=["POST"])
+def heartbeat_camera() -> tuple:
+    system_state["last_camera_heartbeat"] = datetime.datetime.utcnow()
+    return jsonify({"status": "ok", "time": timestamp()})
+
+
+@app.route("/api/heartbeat/lights", methods=["POST"])
+def heartbeat_lights() -> tuple:
+    system_state["last_lights_heartbeat"] = datetime.datetime.utcnow()
+    return jsonify({"status": "ok", "time": timestamp()})
 
 
 @app.route("/api/process_image", methods=["POST"])

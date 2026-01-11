@@ -70,6 +70,11 @@ curl http://localhost:5000/api/status
 python tools/send_counts.py 8 2 9 3
 ```
 
+### Ping heartbeats (optional)
+```
+python tools/ping_heartbeat.py --target both
+```
+
 ### Upload a JPEG
 ```
 python tools/test_upload_image.py path\to\image.jpg
@@ -79,6 +84,14 @@ python tools/test_upload_image.py path\to\image.jpg
 ```
 curl -F "imageFile=@sample.jpg" http://localhost:5000/api/process_image
 ```
+
+## Dashboard
+1. Run the backend: `python backend\\app.py`
+2. Open the dashboard at: `http://127.0.0.1:5000/`
+
+The dashboard polls `/api/status` every second and lets you send test count patterns.
+Future ESP32 firmware can optionally POST to `/api/heartbeat/camera` and
+`/api/heartbeat/lights` to report connectivity.
 
 ## Firmware Setup
 ### ESP32-CAM (Uploader)

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traffic Management Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>Traffic Management Dashboard</h1>
+    <p class="subtitle">Real-time system overview</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Vehicle Counts</h2>
+      <div class="grid">
+        <div class="stat">
+          <span class="label">North</span>
+          <span id="count-n" class="value">--</span>
+        </div>
+        <div class="stat">
+          <span class="label">East</span>
+          <span id="count-e" class="value">--</span>
+        </div>
+        <div class="stat">
+          <span class="label">South</span>
+          <span id="count-s" class="value">--</span>
+        </div>
+        <div class="stat">
+          <span class="label">West</span>
+          <span id="count-w" class="value">--</span>
+        </div>
+      </div>
+      <div class="totals">
+        <div><strong>NS Total:</strong> <span id="total-ns">--</span></div>
+        <div><strong>EW Total:</strong> <span id="total-ew">--</span></div>
+        <div><strong>Overall:</strong> <span id="total-all">--</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Timing Plan</h2>
+      <div class="grid">
+        <div class="stat">
+          <span class="label">NS Green</span>
+          <span id="ns-green" class="value">--</span>
+        </div>
+        <div class="stat">
+          <span class="label">EW Green</span>
+          <span id="ew-green" class="value">--</span>
+        </div>
+        <div class="stat">
+          <span class="label">Cycle</span>
+          <span id="cycle" class="value">--</span>
+        </div>
+      </div>
+      <div class="phase">
+        <strong>Current Phase:</strong>
+        <span id="current-phase" class="pill">--</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>System Status</h2>
+      <ul class="status-list">
+        <li><span class="indicator" id="cv-status"></span> CV Ready</li>
+        <li><span class="indicator" id="ml-status"></span> ML Ready</li>
+        <li><span class="indicator" id="cam-status"></span> ESP32 Camera Connected</li>
+        <li><span class="indicator" id="lights-status"></span> ESP32 Lights Connected</li>
+      </ul>
+      <div class="timestamp">
+        <strong>Last Update:</strong> <span id="last-update">--</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Test Patterns</h2>
+      <div class="button-row">
+        <button class="btn" data-pattern="balanced">Balanced</button>
+        <button class="btn" data-pattern="ns-heavy">NS Heavy</button>
+        <button class="btn" data-pattern="ew-heavy">EW Heavy</button>
+      </div>
+      <p class="hint">Sends counts to <code>/api/process_counts</code>.</p>
+    </section>
+  </main>
+
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
